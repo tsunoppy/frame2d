@@ -9,8 +9,8 @@ from openpyxl.utils import get_column_letter # 列幅の指定 2020/05/27
 class Stiff2D():
 
     def __init__(self, inp_path='data.xlsx', out_path='result.xlsx'):
-        self.inp_path = inp_path # 入力ファイルのパス
-        self.out_path = out_path # 出力ファイルのパス
+        #self.inp_path = inp_path # 入力ファイルのパス
+        #self.out_path = out_path # 出力ファイルのパス
         self.node = []
         self.memb = []
         self.node_load = []
@@ -18,6 +18,7 @@ class Stiff2D():
         self.node_index = [] # node_index[i] 節点番号iが定義されている node[]のindex
         self.memb_index = [] # memb_index[i] 部材番号iが定義されている memb[]のindex
         self.error = "" # エラーメッセージ
+
         
     def add_node(self, id = 0, x = 0, y = 0, xfix = 0, yfix = 0, rfix = 0):
         # 節点情報を一つずつ追加
@@ -76,7 +77,8 @@ class Stiff2D():
         data[10] = 100 * irigid # m -> cm
         data[11] = 100 * jrigid # m -> cm
         self.memb.append(data)
-
+        
+        
     def set_all_memb(self, list2):
         # 部材情報を list2[][] から一括読み込み
         # 戻り値 0: 失敗, 1: 成功
@@ -652,11 +654,45 @@ class Stiff2D():
             self.set_all_memb(list(wb['MEMB'].values))
             self.set_all_node_load(list(wb['NodeLoad'].values))
             self.set_all_memb_load(list(wb['MemberLoad'].values))
-            return 1        
+            return 1
         except Exception as err:
             print(err)
             return 0
-    
+
+    def write_model(self):
+        ########################################################################
+        # Make data for the diagram
+
+        # data for diagram
+        self.xp = [[]]
+        self.yp = [[]]
+
+        for i in range(len(self.memb)):
+
+            #print(self.memb[i][0],self.memb[i][1],self.memb[i][2])
+            xi = []
+            yi = []
+
+            for j in range(len(self.node)):
+                #print(self.node[j][0],self.node[j][1],self.node[j][2])
+
+                if(self.memb[i][1] == self.node[j][0]):
+                    xi.append(float(self.node[j][1])/100)
+                    yi.append(float(self.node[j][2])/100)
+
+                if(self.memb[i][2] == self.node[j][0]):
+                    xi.append(float(self.node[j][1])/100)
+                    yi.append(float(self.node[j][2])/100)
+
+            self.xp.append(xi)
+            self.yp.append(yi)
+
+        # Check data
+        #print(self.xp,self.yp)
+
+        # End
+        ########################################################################
+
     def write_result_xlsx(self,outputFile):
         # result.xlsx に計算結果を書き込む
         # 戻り値 0: 失敗, 1: 成功
